@@ -17,9 +17,9 @@ spec:
     helm:
       parameters:
       - name: aws.region
-        value: us-east-1
+        value: <WORKLOAD_CLUSTER_REGION>
       - name: serviceAccount.annotations.eks\.amazonaws\.com/role-arn
-        value: arn:aws:iam::659548672500:role/ack-ecr-<WORKLOAD_CLUSTER_NAME>
+        value: arn:aws:iam::<WORKLOAD_CLUSTER_ACCOUNT_ID>:role/ack-ecr-<WORKLOAD_CLUSTER_NAME>
     repoURL: public.ecr.aws/aws-controllers-k8s
     targetRevision: 1.3.1
   syncPolicy:
