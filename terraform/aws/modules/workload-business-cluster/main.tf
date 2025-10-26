@@ -530,7 +530,8 @@ resource "aws_iam_policy" "external_secrets_operator" {
           "secretsmanager:ListSecretVersionIds",
           "ssm:*",
           "ecr-public:*",
-          "sts:*"
+          "sts:*",
+          "ecr:*"
         ],
         "Resource" : ["*"]
       },
