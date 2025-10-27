@@ -566,7 +566,8 @@ resource "aws_iam_policy" "external_secrets_operator" {
       {
         "Effect" : "Allow",
         "Action" : [
-          "ssm:DescribeParameters"
+          "ssm:DescribeParameters",
+          "ecr:GetAuthorizationToken"
         ],
         "Resource" : "*"
       },
