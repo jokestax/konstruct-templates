@@ -324,6 +324,10 @@ data "aws_caller_identity" "kubefirst_mgmt" {
   provider = aws.kubefirst_mgmt_region
 }
 
+data "aws_caller_identity" "project_region" {
+  provider = aws.PROJECT_REGION
+}
+
 resource "aws_iam_openid_connect_provider" "eks" {
   provider = aws.kubefirst_mgmt_region
   url             = module.eks.cluster_oidc_issuer_url
@@ -617,7 +621,7 @@ module "external_secrets_operator" {
   allow_self_assume_role     = true
   oidc_providers = {
     main = {
-      provider_arn               = module.eks.oidc_provider_arn
+      provider_arn               = "arn:aws:iam::${data.aws_caller_identity.project_region.account_id}:oidc-provider/${module.eks.oidc_provider}"
       namespace_service_accounts = ["*:external-secrets"]
     }
   }
@@ -636,10 +640,9 @@ resource "aws_iam_policy" "external_secrets_operator" {
       {
         "Effect" : "Allow",
         "Action" : [
-          "ecr:GetAuthorizationToken"
+          "ecr:*"
         ],
         "Resource" : "*"
-        
       },
     ]
   })
