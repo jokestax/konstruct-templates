@@ -9,8 +9,14 @@ locals {
   }
 }
 
+data "aws_caller_identity" "current" {}
+
 data "aws_caller_identity" "kubefirst_mgmt" {
   provider = aws.kubefirst_mgmt_s3_bucket_region
+}
+
+locals {
+  is_same_account = data.aws_caller_identity.current.account_id == data.aws_caller_identity.kubefirst_mgmt.account_id
 }
 
 ################################################################################
@@ -47,7 +53,7 @@ module "eks" {
   access_entries = {
     "argocd_${var.cluster_name}" = {
       cluster_name  = "${var.cluster_name}"
-      principal_arn = "arn:aws:iam::${data.aws_caller_identity.kubefirst_mgmt.account_id}:role/argocd-mgmt-kgetpods-biz"
+      principal_arn = "arn:aws:iam::${data.aws_caller_identity.kubefirst_mgmt.account_id}:role/argocd-<KUBEFIRST_MGMT_CLUSTER_NAME>"
       policy_associations = {
         argocdAdminAccess = {
           policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
@@ -343,6 +349,7 @@ EOT
 }
 
 resource "aws_iam_openid_connect_provider" "eks" {
+  count = local.is_same_account ? 0 : 1
   provider = aws.kubefirst_mgmt_s3_bucket_region
   url             = module.eks.cluster_oidc_issuer_url
   client_id_list  = ["sts.amazonaws.com"]
@@ -475,7 +482,7 @@ module "crossplane_kubefirst_mgmt" {
     aws = aws.kubefirst_mgmt_s3_bucket_region
   }
 
-  role_name = "crossplane-${var.cluster_name}"
+  role_name = "crossplane-${var.cluster_name}-kubefirst"
   
   role_policy_arns = {
     admin = "arn:aws:iam::aws:policy/AdministratorAccess"
@@ -556,7 +563,7 @@ resource "vault_generic_secret" "clusters" {
       host                   = module.eks.cluster_endpoint
       cluster_name           = var.cluster_name
       environment            = var.cluster_name
-      argocd_role_arn        = "arn:aws:iam::${data.aws_caller_identity.kubefirst_mgmt.account_id}:role/argocd-mgmt-kgetpods-biz"
+      argocd_role_arn        = "arn:aws:iam::${data.aws_caller_identity.kubefirst_mgmt.account_id}:role/argocd-<KUBEFIRST_MGMT_CLUSTER_NAME>"
     }
   )
 }
